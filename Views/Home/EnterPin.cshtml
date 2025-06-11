@@ -1,0 +1,10 @@
+﻿<form asp-action="CheckPin" method="post">
+    <label for="phone">Enter PHONE NUMBER:</label>
+    <input type="text" name="phone" id="phone" placeholder="Please Enter Your Phone Number Or Enter Pin '1234' To See All The Appointments" class="form-control" required />
+    <button type="submit" class="btn btn-success mt-2">Submit</button>
+</form>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}

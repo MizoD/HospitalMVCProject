@@ -1,0 +1,207 @@
+﻿@model IEnumerable<Doctor>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Our Doctors</title>
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        background: #eef2f3;
+        margin: 0;
+        padding: 0;
+        }
+
+        header {
+        background-color: #000000;
+        color: white;
+        padding: 20px;
+
+        text-align: center;
+        }
+
+        .doctor-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        padding: 0 20px;
+        }
+
+        .doctor-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        text-align: center;
+        }
+
+        .doctor-card img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+        }
+
+        .doctor-card h3 {
+        margin: 10px 0 5px;
+        }
+
+        .doctor-card p {
+        color: #555;
+        margin-bottom: 25px;
+        }
+
+        .doctor-card button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        }
+
+        .doctor-card button:hover {
+        background-color: #218838;
+        }
+
+        .pagination .page-link {
+            color: #218838;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #ffffff;
+            color: #218838;
+            border-color: #218838;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+            color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-booking">
+        <h1>Meet Our Doctors</h1>
+    </header>
+    @* Filter area *@
+    <section class="py-3 filter-bar">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <form action="">
+                        <div class="row justify-content-center">
+                            <!-- Doctor Name -->
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" placeholder="Doctor First Name" name="doctorName" value="@ViewBag.doctorName">
+                            </div>
+
+                            <!-- Specialty -->
+                            <div class="col-md-2">
+                                <select name="specialtyId" class="form-control">
+                                    <option>All Specialties</option>
+                                    @if (ViewData["listOfSpecialties"] is List<Specialty> specialties)
+                                    {
+                                        @foreach (var item in specialties)
+                                        {
+                                            if (ViewData["specialtyId"] is int specialtyId)
+                                            {
+                                                if (specialtyId == item.Id)
+                                                {
+                                                    <option value="@item.Id" selected>@item.Name</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@item.Id">@item.Name</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="@item.Id">@item.Name</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Available Checkbox -->
+                            <div class="col-md-1"> 
+                                <div class="form-check justify-content-center"> 
+                                    <input type="checkbox" class="form-check-input align-content-center justify-content-center" name="isAvailable" value="true" @(ViewBag.isAvailable is not null && ViewBag.isAvailable ? "checked" : "a")>
+                                    <label class="form-check-label">Available</label> 
+                                </div> 
+                            </div>
+
+                            <!-- Filter Button -->
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-dark w-100">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    @if (Model.Count() == 0)
+    {
+        <div class="row m-5">
+            <class class="col-15">
+                <div class="display-1 d-flex justify-content-center">No Doctors</div>
+            </class>
+        </div>
+    }
+    else
+    {
+        <div class="doctor-container">
+            @foreach (var doctor in Model)
+            {   <div class="doctor-card">
+                    <img src="~/images/@doctor.Image" alt="Doctor Image">
+                    <h3>@(@doctor.FirstName + " " + doctor.LastName) </h3>
+                    <p>@doctor.Specialty.Name</p>
+                    <p>@doctor.Email</p>
+                    <a class="doctor-book-button" asp-controller="Home"
+                    asp-action="BookingForm"
+                    asp-route-doctorId="@doctor.DoctorID">
+                        Book an Appointment
+                    </a>
+
+                </div>
+            }
+           </div>
+        @if (ViewBag.totalNumberOfPages > 1)
+        {
+            <div class="row my-3">
+                <div class="col-12 d-flex justify-content-center">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            @if (!(ViewBag.currentPage == 1))
+                            {
+                                <li class="page-item"><a class="page-link" href="/Home/DoctorPage?page=@(ViewBag.currentPage - 1)">Previous</a></li>
+                            }
+                            @for (int i = 1; i <= ViewBag.totalNumberOfPages; i++)
+                            {
+                                var activeClass = (i == ViewBag.currentPage) ? "active" : "";
+                                <li class="page-item @activeClass"><a class="page-link" href="/Home/DoctorPage?page=@i">@i</a></li>
+                            }
+                            @if (!(ViewBag.totalNumberOfPages == ViewBag.currentPage))
+                            {
+                                <li class="page-item"><a class="page-link" href="/Home/DoctorPage?page=@(ViewBag.currentPage + 1)">Next</a></li>
+                            }
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        }
+           
+     }
+   
+
+</body>
+</html>
