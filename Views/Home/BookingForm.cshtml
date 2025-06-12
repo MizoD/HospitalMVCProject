@@ -17,16 +17,17 @@
     }
 </style>
 <h2 class="mt-15 mb-4 text-success text-center">Book an Appointment</h2>
-
+@if(ViewBag.Date is null){
 <div class="container">
-    <form asp-action="BookingForm" method="post" class="p-4 shadow rounded bg-light">
+    <form id="appointmentForm" asp-action="BookingForm" method="get" class="p-4 shadow rounded bg-light">
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         <div class="mb-3">
             <label class="form-label">Select Date</label>
-            <input type="date" class="form-control" id="Date" name="Date" required />
+            <input type="date" class="form-control" id="Date" name="Date" value="@ViewBag.Date?.ToString("yyyy-MM-dd")" required />
         </div>
         <script>
             const dateInput = document.getElementById('Date');
+            const form = document.getElementById('appointmentForm');
 
             dateInput.addEventListener('input', function () {
             const selectedDate = new Date(this.value);
@@ -35,7 +36,7 @@
             if (day == 5 || day == 6) {
             alert("Fridays and Saturdays are not available for appointments.");
             this.value = '';
-            }
+            } else {form.submit()}
             });
         </script>
 
@@ -43,12 +44,18 @@
             <label for="StartTime" class="form-label">Select Time</label>
             <select class="form-control" id="StartTime" name="StartTime" required>
                 <option value="">-- Select Time --</option>
+                @if (ViewBag.Date != null && ViewBag.BookedTimes != null)
+            {
+                    var bookedTimes = (List<string>)ViewBag.BookedTimes;
                 @for (var time = startTime; time <= endTime; time += interval)
                 {
                     var displayTime = time.ToString(@"hh\:mm");
-                    <option value="@displayTime">@displayTime</option>
-                    
+                    if (!bookedTimes.Contains(displayTime))
+                        {
+                            <option value="@displayTime">@displayTime</option>
+                        }
                 }
+            }
             </select>
         </div>
 
@@ -83,6 +90,81 @@
         
     </form>
 </div>
+}
+@if(ViewBag.Date is not null){
+<div class="container">
+    <form id="appointmentForm" asp-action="BookingForm" method="post" class="p-4 shadow rounded bg-light">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="mb-3">
+            <label class="form-label">Select Date</label>
+            <input type="date" class="form-control" id="Date" name="Date" value="@ViewBag.Date?.ToString("yyyy-MM-dd")" required />
+        </div>
+        <script>
+            const dateInput = document.getElementById('Date');
+            const form = document.getElementById('appointmentForm');
+
+            dateInput.addEventListener('input', function () {
+            const selectedDate = new Date(this.value);
+            const day = selectedDate.getDay(); //5 = Friday 6 = Saturday
+
+            if (day == 5 || day == 6) {
+            alert("Fridays and Saturdays are not available for appointments.");
+            this.value = '';
+            } else {form.submit()}
+            });
+        </script>
+
+        <div class="mb-3">
+            <label for="StartTime" class="form-label">Select Time</label>
+            <select class="form-control" id="StartTime" name="StartTime" required>
+                <option value="">-- Select Time --</option>
+                @if (ViewBag.Date != null && ViewBag.BookedTimes != null)
+                {
+                    var bookedTimes = (List<string>)ViewBag.BookedTimes;
+                    @for (var time = startTime; time <= endTime; time += interval)
+                    {
+                        var displayTime = time.ToString(@"hh\:mm");
+                        if (!bookedTimes.Contains(displayTime))
+                        {
+                            <option value="@displayTime">@displayTime</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="PatientName" class="form-label">PatientName</label>
+            <input type="text" class="form-control" id="PatientName" name="PatientName"
+                   placeholder="Enter Patient Name"
+                   required />
+        </div>
+
+        <div class="mb-3">
+            <label for="PatientEmail" class="form-label">PatientEmail</label>
+            <input type="email" class="form-control" id="PatientEmail" name="PatientEmail"
+                   placeholder="Enter Patient Email"
+                   required />
+        </div>
+
+        <div class="mb-3">
+            <label for="PatientPhone" class="form-label">PatientPhone</label>
+            <input type="tel" class="form-control" id="PatientPhone" name="PatientPhone"
+                   pattern="[0-9]{10,15}"
+                   min="10"
+                   max="15"
+                   placeholder="Enter phone number"
+                   required />
+            <div class="form-text">Enter digits only.</div>
+        </div>
+        <input type="hidden" name="DoctorId" value="@Model" />
+        <div class="mb-3 justify-content-center align-content-center">
+            <button type="submit" class="btn btn-outline-success">Submit</button>
+        </div>
+
+    </form>
+</div>
+}
 
 @section Scripts {
     @{

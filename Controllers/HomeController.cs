@@ -61,24 +61,42 @@ public class HomeController : Controller
         return View(Doctors.ToList());
     }
     [HttpGet]
-    public IActionResult BookingForm(int doctorId)
+    public IActionResult BookingForm(int doctorId, DateTime? date)
     {
         var doctor = _context.Doctors.FirstOrDefault(d => d.DoctorID == doctorId);
-        if (doctor == null)
+        if (doctor == null) return NotFound();
+
+        List<string> bookedTimes = new();
+
+        if (date.HasValue)
         {
-            return NotFound();
+            bookedTimes = _context.Appointments
+                .Where(a => a.DoctorId == doctorId && a.Date == date.Value.Date)
+                .Select(a => a.StartTime.ToString(@"hh\:mm"))
+                .ToList();
         }
+
+        ViewBag.BookedTimes = bookedTimes;
+        ViewBag.Date = date;
+        ViewBag.Doctor = doctor;
+
         return View(doctorId);
     }
 
     [HttpPost]
     public IActionResult BookingForm(Appointment appointment)
     {
-        var doctor = _context.Doctors.First(d => d.DoctorID == appointment.DoctorId);
+        var doctor = _context.Doctors.FirstOrDefault(d => d.DoctorID == appointment.DoctorId);
 
         ModelState.Remove("Doctor");
         if (!ModelState.IsValid)
         {
+            var errors = ModelState.Values
+                 .SelectMany(v => v.Errors)
+                 .Select(e => e.ErrorMessage)
+                 .ToList();
+
+            ViewBag.Errors = errors;
             return View(appointment);
         }
         
